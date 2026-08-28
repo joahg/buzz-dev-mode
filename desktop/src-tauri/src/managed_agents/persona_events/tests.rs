@@ -3,7 +3,7 @@ use crate::managed_agents::{BackendKind, ManagedAgentRecord, RespondTo};
 
 /// A linked instance record with no persona-derived fields set yet — the
 /// state right after creation, before any snapshot apply.
-fn sample_record() -> ManagedAgentRecord {
+pub(super) fn sample_record() -> ManagedAgentRecord {
     ManagedAgentRecord {
         pubkey: "p".repeat(64),
         name: "agent".into(),
@@ -32,6 +32,7 @@ fn sample_record() -> ManagedAgentRecord {
         runtime_pid: None,
         backend: BackendKind::Local,
         backend_agent_id: None,
+        provider_policy_pending: false,
         provider_binary_path: None,
         team_id: None,
         persona_team_dir: None,
@@ -55,10 +56,12 @@ fn sample_record() -> ManagedAgentRecord {
         source_team: None,
         source_team_persona_slug: None,
         catalog_source: None,
+        team_catalog_source: None,
         definition_respond_to: None,
         definition_respond_to_allowlist: Vec::new(),
         definition_parallelism: None,
         relay_mesh: None,
+        effort_level: None,
     }
 }
 
@@ -140,7 +143,7 @@ fn preview_passes_through_unchanged_when_persona_missing() {
     assert_eq!(preview.persona_id.as_deref(), Some("deleted-persona"));
 }
 
-fn sample_persona() -> AgentDefinition {
+pub(super) fn sample_persona() -> AgentDefinition {
     AgentDefinition {
         id: "test-persona".to_string(),
         display_name: "Test Persona".to_string(),
@@ -156,6 +159,7 @@ fn sample_persona() -> AgentDefinition {
         source_team: None,
         source_team_persona_slug: Some("test-slug".to_string()),
         catalog_source: None,
+        team_catalog_source: None,
         env_vars: BTreeMap::from([("KEY".to_string(), "value".to_string())]),
         respond_to: None,
         respond_to_allowlist: Vec::new(),
@@ -383,6 +387,7 @@ fn content_matches_nip_ap_vector() {
         source_team: None,
         source_team_persona_slug: None,
         catalog_source: None,
+        team_catalog_source: None,
         env_vars: BTreeMap::new(),
         respond_to: None,
         respond_to_allowlist: Vec::new(),
@@ -414,6 +419,7 @@ fn round_trip_minimal_persona() {
         source_team: Some("team-1".to_string()),
         source_team_persona_slug: None,
         catalog_source: None,
+        team_catalog_source: None,
         env_vars: BTreeMap::new(),
         respond_to: None,
         respond_to_allowlist: Vec::new(),
@@ -511,6 +517,7 @@ fn quad_absent_definition_hash_stable_across_activation() {
         source_team: None,
         source_team_persona_slug: None,
         catalog_source: None,
+        team_catalog_source: None,
         env_vars: BTreeMap::new(),
         respond_to: None,
         respond_to_allowlist: Vec::new(),
@@ -555,6 +562,7 @@ fn persona_from_event_content_for_test(content: PersonaEventContent) -> AgentDef
         source_team: None,
         source_team_persona_slug: None,
         catalog_source: None,
+        team_catalog_source: None,
         env_vars: BTreeMap::new(),
         respond_to: content.respond_to,
         respond_to_allowlist: content.respond_to_allowlist,

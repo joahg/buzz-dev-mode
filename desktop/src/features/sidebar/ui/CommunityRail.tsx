@@ -50,7 +50,6 @@ type CommunityRailProps = {
     id: string,
     updates: Partial<Pick<Community, "name" | "relayUrl" | "token">>,
   ) => void;
-  onRemoveCommunity: (id: string) => void;
   onReorderCommunities: (orderedIds: string[]) => void;
   /** Developer mode swaps the round Discord-style tiles for flat squares. */
   variant?: CommunityRailVariant;
@@ -140,6 +139,13 @@ function CommunityButton({
               {...dragAttributes}
               {...dragListeners}
             >
+              {isActive ? (
+                <span
+                  aria-hidden="true"
+                  className="absolute -left-2.5 h-5 w-1 rounded-r-full bg-primary"
+                  data-testid={`community-rail-active-${community.id}`}
+                />
+              ) : null}
               <span
                 className={cn(
                   "flex h-9 w-9 items-center justify-center overflow-hidden text-xs font-semibold",
@@ -151,10 +157,8 @@ function CommunityButton({
                           : "border-border/60 text-muted-foreground hover:border-primary/60 hover:text-foreground",
                       )
                     : cn(
-                        "rounded-2xl transition-all",
-                        isActive
-                          ? "rounded-xl bg-primary text-primary-foreground"
-                          : "bg-sidebar-accent/60 text-sidebar-foreground/80 hover:rounded-xl hover:bg-primary/80 hover:text-primary-foreground",
+                        "rounded-xl bg-sidebar-accent/60 text-sidebar-foreground/80 outline-2 outline-offset-2 outline-primary/0 transition-[outline-color]",
+                        !isActive && "hover:outline-primary/50",
                       ),
                   pending && !isActive && "opacity-60",
                 )}
@@ -199,7 +203,9 @@ function CommunityButton({
             </button>
           </ContextMenuTrigger>
         </TooltipTrigger>
-        <TooltipContent side="right">{tooltipLabel}</TooltipContent>
+        <TooltipContent side="right" sideOffset={8}>
+          {tooltipLabel}
+        </TooltipContent>
       </Tooltip>
       <ContextMenuContent data-testid={`community-rail-menu-${community.id}`}>
         {menu}
@@ -339,7 +345,6 @@ export function CommunityRail({
   onSwitchCommunity,
   onAddCommunity,
   onUpdateCommunity,
-  onRemoveCommunity,
   onReorderCommunities,
   variant = "standard",
 }: CommunityRailProps) {
@@ -406,7 +411,7 @@ export function CommunityRail({
     <nav
       aria-label="Communities"
       className={cn(
-        "relative z-0 flex w-14 shrink-0 flex-col items-center gap-2 overflow-y-auto px-2.5 pb-5 pt-[calc(var(--buzz-top-chrome-height,40px)+7px)]",
+        "relative z-20 flex w-14 shrink-0 flex-col items-center gap-2.5 overflow-y-auto px-2.5 pb-5 pt-[calc(var(--buzz-top-chrome-height,40px)+7px)]",
         variant === "developer"
           ? "border-r border-border/60 bg-background font-mono"
           : "bg-sidebar",
@@ -467,14 +472,14 @@ export function CommunityRail({
             <Plus className="h-4 w-4" />
           </button>
         </TooltipTrigger>
-        <TooltipContent side="right">Add community</TooltipContent>
+        <TooltipContent side="right" sideOffset={8}>
+          Add community
+        </TooltipContent>
       </Tooltip>
       <EditCommunityDialog
-        canRemove={communities.length > 1}
         onOpenChange={(open) => {
           if (!open) setEditingCommunity(null);
         }}
-        onRemove={onRemoveCommunity}
         onSave={onUpdateCommunity}
         open={editingCommunity !== null}
         community={editingCommunity}

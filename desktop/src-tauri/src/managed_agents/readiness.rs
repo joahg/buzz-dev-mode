@@ -79,7 +79,7 @@ pub(crate) struct EffectiveAgentEnv {
 //
 // A single owned type that fully describes what a spawn would run.  Produced
 // by `resolve_effective_harness_descriptor` and consumed by spawn_agent_child,
-// spawn_config_hash, build_managed_agent_summary, get_agent_models, and
+// spawn_snapshot, build_managed_agent_summary, get_agent_models, and
 // agent_readiness — so the harness-definition lookup and arg/env resolution
 // happen exactly once, in one place.
 
@@ -1462,9 +1462,8 @@ mod tests {
 
     #[test]
     fn resolve_effective_agent_env_user_env_wins_over_structured_fields() {
-        // A record whose env_vars explicitly set provider/model must win over
-        // any baked defaults. In OSS test builds the baked map is empty, so
-        // this test validates the user-env layer is present in the output.
+        // User env_vars must win over baked defaults; in OSS builds baked map is empty,
+        // so this validates the user-env layer is present in the output.
         let mut env_vars = BTreeMap::new();
         env_vars.insert("BUZZ_AGENT_PROVIDER".to_string(), "anthropic".to_string());
         env_vars.insert(
@@ -1501,6 +1500,7 @@ mod tests {
             runtime_pid: None,
             backend: Default::default(),
             backend_agent_id: None,
+            provider_policy_pending: false,
             provider_binary_path: None,
             team_id: None,
             persona_team_dir: None,
@@ -1524,10 +1524,12 @@ mod tests {
             source_team: None,
             source_team_persona_slug: None,
             catalog_source: None,
+            team_catalog_source: None,
             definition_respond_to: None,
             definition_respond_to_allowlist: Vec::new(),
             definition_parallelism: None,
             relay_mesh: None,
+            effort_level: None,
         };
 
         let runtime = known_acp_runtime_exact("buzz-agent");
@@ -1543,8 +1545,6 @@ mod tests {
             Some("claude-opus-4-5")
         );
     }
-
-    // ── provider-specific model fallback tests ────────────────────────────
 
     #[test]
     fn buzz_agent_databricks_v2_with_databricks_model_but_no_buzz_agent_model_is_ready() {
@@ -1713,7 +1713,6 @@ mod tests {
             key: "OPENROUTER_API_KEY".to_string()
         }));
     }
-
     #[test]
     fn buzz_agent_openrouter_with_provider_model_fallback_is_ready() {
         let env = make_env(

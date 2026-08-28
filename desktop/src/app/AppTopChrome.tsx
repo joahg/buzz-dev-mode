@@ -1,16 +1,11 @@
 import * as React from "react";
-import {
-  ChevronLeft,
-  ChevronRight,
-  PanelLeftClose,
-  PanelLeftOpen,
-  Terminal,
-} from "lucide-react";
+import { ChevronLeft, ChevronRight, Terminal } from "lucide-react";
 
 import { setDisplayStyle } from "@/features/dev-mode/lib/displayStylePreference";
 import { isMacPlatform } from "@/shared/lib/platform";
 import { useIsFullscreen } from "@/shared/lib/useIsFullscreen";
 import { Button } from "@/shared/ui/button";
+import { DrawerPanelIcon } from "@/shared/ui/DrawerPanelIcon";
 import { cn } from "@/shared/lib/cn";
 import { topChromeBackdrop } from "@/shared/layout/chromeLayout";
 import { useOptionalSidebar } from "@/shared/ui/sidebar";
@@ -28,7 +23,7 @@ type AppTopChromeProps = {
 // the row must not grow or shrink with the rem scale. Deliberate exception
 // to the rem-first rule.
 const TOP_CHROME_ICON_BUTTON_CLASS =
-  "h-[28px] w-[28px] rounded-[4px] text-sidebar-foreground/65 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground [&_svg]:size-[16px]";
+  "h-[28px] w-[28px] rounded-[4px] text-sidebar-foreground/65 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground";
 const HISTORY_ICON_BUTTON_CLASS =
   "h-[28px] w-[24px] rounded-[4px] text-sidebar-foreground/65 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground [&_svg]:size-[16px]";
 
@@ -52,7 +47,7 @@ function TopChromeSidebarTrigger() {
       type="button"
       variant="ghost"
     >
-      {sidebar?.open ? <PanelLeftClose /> : <PanelLeftOpen />}
+      <DrawerPanelIcon side={sidebar?.open ? "left" : "right"} />
       <span className="sr-only">Toggle Sidebar</span>
     </Button>
   );
@@ -84,6 +79,29 @@ export function AppTopChrome({
     : "pl-3";
   const navRowAlignmentClass = macChrome ? "translate-y-[3px]" : null;
 
+  React.useLayoutEffect(() => {
+    const topChrome = topChromeRef.current;
+    const portalTarget = topChrome?.querySelector<HTMLElement>(
+      "#app-top-chrome-content",
+    );
+    if (!topChrome || !portalTarget) return;
+
+    const updateCenterOffset = () => {
+      const portalBounds = portalTarget.getBoundingClientRect();
+      const portalCenter = portalBounds.left + portalBounds.width / 2;
+      topChrome.style.setProperty(
+        "--app-top-chrome-center-offset",
+        `${window.innerWidth / 2 - portalCenter}px`,
+      );
+    };
+
+    updateCenterOffset();
+    const observer = new ResizeObserver(updateCenterOffset);
+    observer.observe(topChrome);
+    observer.observe(portalTarget);
+    return () => observer.disconnect();
+  }, []);
+
   React.useEffect(() => {
     const topChrome = topChromeRef.current;
     if (!topChrome) {
@@ -107,6 +125,11 @@ export function AppTopChrome({
       )}
       data-tauri-drag-region
       data-testid="app-top-chrome"
+      style={
+        {
+          "--app-top-chrome-center-offset": "0px",
+        } as React.CSSProperties
+      }
     >
       <div className={cn("flex items-center gap-0.5", navRowAlignmentClass)}>
         <TopChromeSidebarTrigger />
@@ -133,6 +156,11 @@ export function AppTopChrome({
           <ChevronRight />
         </Button>
       </div>
+      <div
+        className={cn("flex min-w-0 flex-1 items-center", navRowAlignmentClass)}
+        data-tauri-drag-region
+        id="app-top-chrome-content"
+      />
       <div className={cn("ml-auto flex items-center", navRowAlignmentClass)}>
         <DevModeSwitch />
       </div>
