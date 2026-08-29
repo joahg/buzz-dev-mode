@@ -43,6 +43,7 @@ import { DevChannelNavigator } from "@/features/dev-mode/ui/DevChannelNavigator"
 import { DevChannelTabs } from "@/features/dev-mode/ui/DevChannelTabs";
 import { DevInbox } from "@/features/dev-mode/ui/DevInbox";
 import { DevMentionTickerTopBar } from "@/features/dev-mode/ui/DevMentionTickerTopBar";
+import { DevUpdateNotice } from "@/features/dev-mode/ui/DevUpdateNotice";
 import { DevCommandPalette } from "@/features/dev-mode/ui/DevCommandPalette";
 import { DevAgentStatusLine } from "@/features/dev-mode/ui/DevAgentStatusLine";
 import { DevPromptComposer } from "@/features/dev-mode/ui/DevPromptComposer";
@@ -841,6 +842,7 @@ export function DevModeShell({
               }
             />
           </div>
+          <DevUpdateNotice macChrome={macChrome} />
         </div>
 
         <div className="flex min-h-0 min-w-0 flex-1">
