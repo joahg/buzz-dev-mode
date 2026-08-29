@@ -96,6 +96,11 @@ async function expectBuzzSidebarPalette(page: Page, mode: "light" | "dark") {
   );
   expect(pinnedSpacerColor).toBe("rgba(0, 0, 0, 0)");
   await expect(sidebarScroller.getByTestId("open-agents-view")).toBeVisible();
+  // Clicking the channel auto-scrolls the sidebar when many channels sit
+  // above it; reset to the top so the pinned-header geometry is measurable.
+  await sidebarScroller.evaluate((element) => {
+    element.scrollTop = 0;
+  });
   const searchBox = await search.boundingBox();
   const pinnedHeaderBox = await pinnedHeader.boundingBox();
   const primaryMenuBox = await primaryMenu.boundingBox();

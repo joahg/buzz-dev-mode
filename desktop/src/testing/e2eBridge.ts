@@ -1053,7 +1053,10 @@ type WsHandler = (message: unknown) => void;
 const GLOBAL_MOCK_SUBSCRIPTION = "*";
 
 type MockSubscription = {
-  channelId: string;
+  /** `#h` values from the REQ filters; null when no filter carried one
+   *  (a global subscription). Live REQs batch many channels per filter,
+   *  so matching must consider every id, mirroring relay routing. */
+  channelIds: string[] | null;
   kinds: number[] | null;
   /** `#p` values from the REQ filters, if any — lets specs assert an
    *  owner-scoped live subscription (e.g. the observer-archive `24200`
@@ -4773,12 +4776,21 @@ function emitMockHistory(
   emit();
 }
 
+function subscriptionMatchesChannel(
+  subscription: MockSubscription,
+  channelId: string,
+) {
+  return (
+    subscription.channelIds === null ||
+    subscription.channelIds.includes(channelId)
+  );
+}
+
 function emitMockLiveEvent(channelId: string, event: RelayEvent) {
   for (const socket of mockSockets.values()) {
     for (const [subId, subscription] of socket.subscriptions) {
       if (
-        (subscription.channelId === channelId ||
-          subscription.channelId === GLOBAL_MOCK_SUBSCRIPTION) &&
+        subscriptionMatchesChannel(subscription, channelId) &&
         (!subscription.kinds || subscription.kinds.includes(event.kind))
       ) {
         sendWsText(socket.handler, ["EVENT", subId, event]);
@@ -4821,8 +4833,7 @@ function hasMockLiveSubscription(channelId: string, kind?: number) {
   for (const socket of mockSockets.values()) {
     for (const subscription of socket.subscriptions.values()) {
       if (
-        (subscription.channelId === channelId ||
-          subscription.channelId === GLOBAL_MOCK_SUBSCRIPTION) &&
+        subscriptionMatchesChannel(subscription, channelId) &&
         (kind === undefined ||
           !subscription.kinds ||
           subscription.kinds.includes(kind))
@@ -10652,8 +10663,7 @@ function sendToMockSocket(args: {
       const kinds = new Set<number>();
       const ownerPubkeys = new Set<string>();
       for (const f of filters) {
-        const cid = f["#h"]?.[0];
-        if (cid) channelIds.add(cid);
+        for (const cid of f["#h"] ?? []) channelIds.add(cid);
         for (const kind of f.kinds ?? []) {
           kinds.add(kind);
         }
@@ -10676,7 +10686,7 @@ function sendToMockSocket(args: {
         return;
       }
       socket.subscriptions.set(subId, {
-        channelId: onlyChannelId ?? GLOBAL_MOCK_SUBSCRIPTION,
+        channelIds: channelIds.size > 0 ? [...channelIds] : null,
         kinds: kinds.size > 0 ? [...kinds] : null,
         ownerPubkeys: [...ownerPubkeys],
       });

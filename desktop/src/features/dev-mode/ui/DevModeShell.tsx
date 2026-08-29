@@ -20,6 +20,7 @@ import {
 } from "@/features/dev-mode/lib/subChannels";
 import { selectRootEvents } from "@/features/dev-mode/lib/transcriptRoots";
 import { useChannelStatuses } from "@/features/dev-mode/lib/useChannelStatuses";
+import { useDiscoverableChannels } from "@/features/dev-mode/lib/useDiscoverableChannels";
 import { useShellFocusGuards } from "@/features/dev-mode/lib/useShellFocusGuards";
 import { useDevWorkingChannelIds } from "@/features/dev-mode/lib/useDevWorkingChannelIds";
 import { useDevUnreadNavigatorIds } from "@/features/dev-mode/lib/useDevUnreadNavigatorIds";
@@ -158,19 +159,7 @@ export function DevModeShell({
     [channelsQuery.data],
   );
 
-  // Open channels the user hasn't joined: the palette searches these and
-  // joins on enter, but they stay out of the left navigator until joined.
-  const discoverableChannels = React.useMemo(
-    () =>
-      (channelsQuery.data ?? []).filter(
-        (channel) =>
-          channel.channelType === "stream" &&
-          !channel.isMember &&
-          channel.visibility === "open" &&
-          channel.archivedAt === null,
-      ),
-    [channelsQuery.data],
-  );
+  const discoverableChannels = useDiscoverableChannels(overlay === "palette");
 
   // `#channel` references: composers autocomplete these names and message
   // rows render matching tokens as clickable links to the channel. Includes
