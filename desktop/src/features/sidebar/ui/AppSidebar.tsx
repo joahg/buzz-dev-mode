@@ -49,6 +49,7 @@ import {
   SectionQuickAction,
 } from "@/features/sidebar/ui/CustomChannelSection";
 import { CreateChannelDialog } from "@/features/sidebar/ui/CreateChannelDialog";
+import { useImportSectionsDialog } from "@/features/sidebar/ui/ImportSectionsDialog";
 import { SidebarProfileCard } from "@/features/sidebar/ui/SidebarProfileCard";
 import { HuddleProfileControl } from "@/features/huddle";
 import type {
@@ -308,6 +309,14 @@ export function AppSidebar({
     () => channels.filter((channel) => channel.channelType === "stream"),
     [channels],
   );
+
+  const { openImportSections, dialog: importSectionsDialog } =
+    useImportSectionsDialog({
+      channels: streamChannels,
+      sections: channelSections,
+      createSection,
+      assignChannel,
+    });
 
   const sectionBuckets = React.useMemo(() => {
     const bySection: Record<string, Channel[]> = {};
@@ -717,6 +726,7 @@ export function AppSidebar({
                       onAssignChannel={assignChannel}
                       onUnassignChannel={unassignChannel}
                       onCreateSectionForChannel={handleCreateSectionForChannel}
+                      onImportSections={openImportSections}
                       mutedChannelIds={mutedChannelIds}
                       onMuteChannel={onMuteChannel}
                       onUnmuteChannel={onUnmuteChannel}
@@ -957,6 +967,7 @@ export function AppSidebar({
       />
       {deleteChannelDialog}
       {leaveChannelDialog}
+      {importSectionsDialog}
       <SidebarRail />
     </Sidebar>
   );

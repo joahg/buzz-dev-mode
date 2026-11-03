@@ -5,6 +5,7 @@ import {
   CheckCheck,
   ChevronDown,
   EllipsisVertical,
+  ListTree,
   Pencil,
   Plus,
   Trash2,
@@ -138,6 +139,7 @@ export function SectionActionsMenu({
   isLastSection,
   sortMode,
   onSortModeChange,
+  onImportSections,
 }: {
   sectionLabel: string;
   testId?: string;
@@ -159,6 +161,7 @@ export function SectionActionsMenu({
   isLastSection?: boolean;
   sortMode?: ChannelSortMode;
   onSortModeChange?: (mode: ChannelSortMode) => void;
+  onImportSections?: () => void;
 }) {
   const triggerRef = useRef<HTMLButtonElement>(null);
   const showSectionManagement = Boolean(onRenameSection || onDeleteSection);
@@ -211,6 +214,12 @@ export function SectionActionsMenu({
           <DropdownMenuItem onSelect={() => deferMenuAction(onCreate)}>
             <Plus className="h-4 w-4" />
             <span>{createLabel ?? "Create channel"}</span>
+          </DropdownMenuItem>
+        ) : null}
+        {onImportSections ? (
+          <DropdownMenuItem onSelect={() => deferMenuAction(onImportSections)}>
+            <ListTree className="h-4 w-4" />
+            <span>Import sections…</span>
           </DropdownMenuItem>
         ) : null}
         {showSectionManagement ? (
@@ -372,6 +381,7 @@ export function ChannelGroupSection({
   onUnstarChannel,
   onDeleteChannel,
   onLeaveChannel,
+  onImportSections,
 }: {
   browseLabel?: string;
   createLabel?: string;
@@ -421,6 +431,7 @@ export function ChannelGroupSection({
   onUnstarChannel?: (channelId: string) => void;
   onDeleteChannel?: (channel: Channel) => void;
   onLeaveChannel?: (channel: Channel) => void;
+  onImportSections?: () => void;
 }) {
   const contentId = `sidebar-${listTestId}`;
   const [actionsMenuOpen, setActionsMenuOpen] = useState(false);
@@ -519,6 +530,7 @@ export function ChannelGroupSection({
               createLabel={createLabel}
               sortMode={sortMode}
               onSortModeChange={onSortModeChange}
+              onImportSections={onImportSections}
             />
           </>
         }
